@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dreambai.blog.dao.BlogMapper">
+
+    <resultMap type="Blog" id="BlogResult">
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="blog_type" column="blog_type"/>
+        <result property="status" column="status"/>
+        <result property="created_by" column="created_by"/>
+        <result property="last_modified" column="last_modified"/>
+        <result property="click_hit" column="click_hit"/>
+        <result property="reply_hit" column="reply_hit"/>
+        <result property="created_time" column="created_time"/>
+        <result property="update_time" column="update_time"/>
+    </resultMap>
+
+    <select id="selectBlogs" parameterType="BlogRequest" resultMap="BlogResult">
+        SELECT
+        bl.title AS title,
+        bl.content AS content,
+        bu.nick_name AS created_by,
+        bl.click_hit AS click_hit,
+        bl.reply_hit AS reply_hit,
+        bl.created_time AS created_time
+        FROM blog bl
+        JOIN blog_user bu
+        ON bl.created_by = bu.user_name
+        <where>
+            bl.status = 1
+            <if test="query!=null and query!=''">
+                AND CONCAT(bl.title, bl.content) LIKE CONCAT('%',#{query},'%')
+            </if>
+            <if test="type!=0">
+                AND bl.blog_type = #{type}
+            </if>
+        </where>
+        ORDER BY bl.created_time DESC
+        <if test='offset != null and limit != null'>
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+
+    <select id="getTotal" parameterType="BlogRequest" resultType="java.lang.Integer">
+        SELECT count(1) FROM blog
+        <where>
+            status = 1
+            <if test="query!=null and query!=''">
+                AND CONCAT(title, content) LIKE CONCAT('%',#{query},'%')
+            </if>
+            <if test="type!=0">
+                AND blog_type = #{type}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryBlogTypes" resultType="BlogType">
+        SELECT * FROM blog_type;
+    </select>
+
+</mapper> 
